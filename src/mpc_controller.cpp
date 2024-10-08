@@ -57,7 +57,7 @@ private:
         double time_difference_ms = static_cast<double>(current_time_us - message_time_us) / 1000.0;
 
         // Print the time difference
-        RCLCPP_INFO(this->get_logger(), "Current Time: %.5f ms", time_difference_ms);
+        RCLCPP_INFO(this->get_logger(), "Time difference: %.5f ms", time_difference_ms);
 
         // x_0 = msg;
 
