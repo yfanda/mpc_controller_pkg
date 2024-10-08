@@ -38,6 +38,8 @@ private:
     void topic_callback(const px4_msgs::msg::RaspberryPiToPixhawk::SharedPtr msg)
     {
         RCLCPP_INFO(this->get_logger(), "Received RaspberryPiToPixhawk message.");
+        RCLCPP_INFO(this->get_logger(), "Publishing message with timestamp: %lu.", msg->timestamp);
+
 
         // You can process the received message here if needed
        /*  for (size_t i = 0; i < 16; i++) {

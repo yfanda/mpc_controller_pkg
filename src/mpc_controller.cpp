@@ -26,6 +26,8 @@ public:
         for (size_t i = 0; i < 16; i++) {
             msg.msg_payload[i] = static_cast<float>(i);
         }
+        // Get the current time in microseconds and set it in the timestamp field
+        msg.timestamp = this->now().nanoseconds() / 1000;  // Convert nanoseconds to microseconds
 
         // Log and publish the message
         RCLCPP_INFO(this->get_logger(), "Publishing initial RaspberryPiToPixhawk message.");
@@ -41,6 +43,8 @@ private:
         for (size_t i = 0; i < 16; i++) {
             RCLCPP_INFO(this->get_logger(), "Payload[%zu]: %f", i, msg->msg_payload[i]);
         }
+        
+
 
         // x_0 = msg; 
 
