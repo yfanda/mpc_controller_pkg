@@ -53,6 +53,7 @@ private:
         for (size_t i = 0; i < 16; i++) {
             outgoing_msg.msg_payload[i] = msg->msg_payload[i];
         }
+        outgoing_msg.timestamp = msg->timestamp;
 
         // Publish the message
         publisher_->publish(outgoing_msg);

@@ -39,15 +39,27 @@ private:
     // Callback function for subscription
     void topic_callback(const px4_msgs::msg::PixhawkToRaspberryPi::SharedPtr msg)
     {
-        RCLCPP_INFO(this->get_logger(), "Received message from Pixhawk, no forwarding msg_payload.");
+        RCLCPP_INFO(this->get_logger(), "Received message from Pixhawk");
 
-        for (size_t i = 0; i < 16; i++) {
+/*         for (size_t i = 0; i < 16; i++) {
             RCLCPP_INFO(this->get_logger(), "Payload[%zu]: %f", i, msg->msg_payload[i]);
-        }
+        } */
         
+        // Get the current time and convert it to microseconds (current time is in nanoseconds)
+        uint64_t current_time_us = this->now().nanoseconds() / 1000;
+
+        // Timestamp from the message (in microseconds)
+        uint64_t message_time_us = msg->timestamp;
 
 
-        // x_0 = msg; 
+
+        // Calculate the time difference and convert to milliseconds
+        double time_difference_ms = static_cast<double>(current_time_us - message_time_us) / 1000.0;
+
+        // Print the time difference
+        RCLCPP_INFO(this->get_logger(), "Current Time: %.5f ms", time_difference_ms);
+
+        // x_0 = msg;
 
         // Create a message to send to the Pixhawk
 /*         auto outgoing_msg = px4_msgs::msg::RaspberryPiToPixhawk();
