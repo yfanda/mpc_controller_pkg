@@ -8,8 +8,11 @@ public:
     MpcController() : Node("mpc_controller")
     {
         // Subscriber to Pixhawk to RaspberryPi message
+        rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
+        auto qos = rclcpp::QoS(rclcpp::QoSInitialization(qos_profile.history, 5), qos_profile);
+
         subscription_ = this->create_subscription<px4_msgs::msg::PixhawkToRaspberryPi>(
-            "/fmu/out/pixhawk_to_raspberry_pi", 10,
+            "/fmu/out/pixhawk_to_raspberry_pi", qos,
             std::bind(&MpcController::topic_callback, this, std::placeholders::_1));
 
         // Publisher to RaspberryPi to Pixhawk message
@@ -38,6 +41,8 @@ private:
         for (size_t i = 0; i < 16; i++) {
             RCLCPP_INFO(this->get_logger(), "Payload[%zu]: %f", i, msg->msg_payload[i]);
         }
+
+        // x_0 = msg; 
 
         // Create a message to send to the Pixhawk
 /*         auto outgoing_msg = px4_msgs::msg::RaspberryPiToPixhawk();
