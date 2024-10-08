@@ -32,6 +32,7 @@ public:
         // Log and publish the message
         RCLCPP_INFO(this->get_logger(), "Publishing initial RaspberryPiToPixhawk message.");
         publisher_->publish(msg);
+        RCLCPP_INFO(this->get_logger(), "Publishing message with timestamp: %lu.", msg.timestamp);
     }
 
 private:
