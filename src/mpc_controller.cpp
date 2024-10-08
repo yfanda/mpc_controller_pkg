@@ -15,16 +15,32 @@ public:
         // Publisher to RaspberryPi to Pixhawk message
         publisher_ = this->create_publisher<px4_msgs::msg::RaspberryPiToPixhawk>(
             "/fmu/in/raspberry_pi_to_pixhawk", 10);
+
+        // Publish a message when the node starts
+        auto msg = px4_msgs::msg::RaspberryPiToPixhawk();
+        
+        // Fill the message payload with some example data
+        for (size_t i = 0; i < 16; i++) {
+            msg.msg_payload[i] = static_cast<float>(i);
+        }
+
+        // Log and publish the message
+        RCLCPP_INFO(this->get_logger(), "Publishing initial RaspberryPiToPixhawk message.");
+        publisher_->publish(msg);
     }
 
 private:
     // Callback function for subscription
     void topic_callback(const px4_msgs::msg::PixhawkToRaspberryPi::SharedPtr msg)
     {
-        RCLCPP_INFO(this->get_logger(), "Received message from Pixhawk, forwarding msg_payload.");
+        RCLCPP_INFO(this->get_logger(), "Received message from Pixhawk, no forwarding msg_payload.");
+
+        for (size_t i = 0; i < 16; i++) {
+            RCLCPP_INFO(this->get_logger(), "Payload[%zu]: %f", i, msg->msg_payload[i]);
+        }
 
         // Create a message to send to the Pixhawk
-        auto outgoing_msg = px4_msgs::msg::RaspberryPiToPixhawk();
+/*         auto outgoing_msg = px4_msgs::msg::RaspberryPiToPixhawk();
         
         // Copy the incoming msg_payload to the outgoing message
         for (size_t i = 0; i < 16; i++) {
@@ -32,7 +48,7 @@ private:
         }
 
         // Publish the message
-        publisher_->publish(outgoing_msg);
+        publisher_->publish(outgoing_msg); */
     }
 
     rclcpp::Subscription<px4_msgs::msg::PixhawkToRaspberryPi>::SharedPtr subscription_;
