@@ -19,20 +19,12 @@ public:
         publisher_ = this->create_publisher<px4_msgs::msg::RaspberryPiToPixhawk>(
             "/fmu/in/raspberry_pi_to_pixhawk", 10);
 
-        // Publish a message when the node starts
-        auto msg = px4_msgs::msg::RaspberryPiToPixhawk();
-        
-        // Fill the message payload with some example data
-        for (size_t i = 0; i < 16; i++) {
-            msg.msg_payload[i] = static_cast<float>(i);
-        }
-        // Get the current time in microseconds and set it in the timestamp field
-        msg.timestamp = this->now().nanoseconds() / 1000;  // Convert nanoseconds to microseconds
+        // Timer to publish message every 1 second
+        timer_ = this->create_wall_timer(
+            std::chrono::seconds(1),
+            std::bind(&MpcController::publish_message, this));
 
-        // Log and publish the message
-        RCLCPP_INFO(this->get_logger(), "Publishing initial RaspberryPiToPixhawk message.");
-        publisher_->publish(msg);
-        RCLCPP_INFO(this->get_logger(), "Publishing message with timestamp: %lu.", msg.timestamp);
+     
     }
 
 private:
@@ -73,8 +65,28 @@ private:
         publisher_->publish(outgoing_msg); */
     }
 
+
+    // Function to publish the message
+    void publish_message()
+    {
+        auto msg = px4_msgs::msg::RaspberryPiToPixhawk();
+
+        // Fill the message payload with some example data
+        for (size_t i = 0; i < 16; i++) {
+            msg.msg_payload[i] = static_cast<float>(i);
+        }
+        // Get the current time in microseconds and set it in the timestamp field
+        msg.timestamp = this->now().nanoseconds() / 1000;  // Convert nanoseconds to microseconds
+
+        // Log and publish the message
+        RCLCPP_INFO(this->get_logger(), "Publishing RaspberryPiToPixhawk message every 1 second.");
+        RCLCPP_INFO(this->get_logger(), "Publishing message with timestamp: %lu.", msg.timestamp);
+        publisher_->publish(msg);
+    }
+
     rclcpp::Subscription<px4_msgs::msg::PixhawkToRaspberryPi>::SharedPtr subscription_;
     rclcpp::Publisher<px4_msgs::msg::RaspberryPiToPixhawk>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer_;
 };
 
 int main(int argc, char *argv[])
