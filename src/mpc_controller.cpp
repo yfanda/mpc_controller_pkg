@@ -1,16 +1,21 @@
 #include "rclcpp/rclcpp.hpp"
 #include "px4_msgs/msg/pixhawk_to_raspberry_pi.hpp"
 #include "px4_msgs/msg/raspberry_pi_to_pixhawk.hpp"
+#include <iostream>
+#include <vector> 
+#include <grampc.hpp>
+#include "UAV_model.hpp"
 
 class MpcController : public rclcpp::Node
 {
 public:
     MpcController() : Node("mpc_controller")
     {
-        // Subscriber to Pixhawk to RaspberryPi message
+        // QoS setting to fit pixhawk
         rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
         auto qos = rclcpp::QoS(rclcpp::QoSInitialization(qos_profile.history, 5), qos_profile);
 
+        // Subscriber to Pixhawk to RaspberryPi message
         subscription_ = this->create_subscription<px4_msgs::msg::PixhawkToRaspberryPi>(
             "/fmu/out/pixhawk_to_raspberry_pi", qos,
             std::bind(&MpcController::topic_callback, this, std::placeholders::_1));
@@ -23,6 +28,13 @@ public:
         timer_ = this->create_wall_timer(
             std::chrono::seconds(1),
             std::bind(&MpcController::publish_message, this));
+
+        // create problem description
+        double Thor = 0.3;
+        double dt = 0.01;
+        UAVModel problem(Thor, dt);
+        // create solver
+        grampc::Grampc solver(&problem);
 
      
     }
