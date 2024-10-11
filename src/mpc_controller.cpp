@@ -33,8 +33,8 @@ public:
         
         /*****Initialize parameters and options for grampc*******/        
         const char* workspace_path = std::getenv("PWD");
-        filename1_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/x_traj_rotor1_failure_3.txt";
-        filename2_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/u_traj_rotor1_failure_3.txt";
+        filename1_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/x_traj.txt";
+        filename2_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/u_traj.txt";
         filename1 = filename1_.c_str();
         filename2 = filename2_.c_str();
         

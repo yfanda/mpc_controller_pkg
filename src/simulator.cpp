@@ -16,7 +16,7 @@ public:
         double* state_ptr = state_.data();
 
         const char* workspace_path = std::getenv("PWD");
-        std::string filename1_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/x_traj_rotor1_failure_3.txt";
+        std::string filename1_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/x_traj.txt";
         filename1 = filename1_.c_str();
         
         lineReader(state_ptr, 9, filename1, 1);
