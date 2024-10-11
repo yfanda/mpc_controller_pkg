@@ -2,6 +2,7 @@
 #include "problem_description.hpp"
 #include "UAV_model.hpp"
 #include <vector> 
+#include <array>
 
 #define NX	9
 #define NU	8
@@ -310,6 +311,37 @@ void UAVModel::updateTrajData(const char* filename1, const char* filename2, int 
     for (int j = 2 + num_xtraj; j < 2 + num_xtraj + num_utraj; ++j) {
         userparam[j] = u_traj[j - 2 - num_xtraj];
     }
+}
+std::array<double, 9> UAVModel::rk4(const std::array<double, 9>& state, const std::array<double, 8>& input)
+{
+    std::array<double, 9> k1, k2, k3, k4, new_state;
+    double t = 0.0;
+    typeRNum *p = nullptr;
+
+    ffct(k1.data(), t, state.data(), input.data(), p);
+
+    std::array<double, 9> state_mid;
+    for (size_t i = 0; i < 9; ++i) {
+        state_mid[i] = state[i] + dt / 2.0 * k1[i];
+    }
+    ffct(k2.data(), t + dt / 2.0, state_mid.data(), input.data(), p);
+
+    for (size_t i = 0; i < 9; ++i) {
+        state_mid[i] = state[i] + dt / 2.0 * k2[i];
+    }
+    ffct(k3.data(), t + dt / 2.0, state_mid.data(), input.data(), p);
+
+    for (size_t i = 0; i < 9; ++i) {
+        state_mid[i] = state[i] + dt * k3[i];
+    }
+    ffct(k4.data(), t + dt, state_mid.data(), input.data(), p);
+
+    for (size_t i = 0; i < 9; ++i) {
+        new_state[i] = state[i] + dt / 6.0 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+    }
+
+    return new_state;
+
 }
 
 

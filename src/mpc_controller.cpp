@@ -5,11 +5,18 @@
 #include <vector> 
 #include <grampc.hpp>
 #include "UAV_model.hpp"
+#include <cstdlib> // for getenv()
+
+#define NX	9
+#define NU	8
+#define NC	19
+#define NP	0
 
 class MpcController : public rclcpp::Node
 {
 public:
-    MpcController() : Node("mpc_controller")
+    // Node Constructer with initializing list problem(Thor,  dt),solver(&problem)
+    MpcController() : Node("mpc_controller"), problem(0.3,  0.01),solver(&problem)
     {
         // QoS setting to fit pixhawk
         rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
@@ -23,82 +30,261 @@ public:
         // Publisher to RaspberryPi to Pixhawk message
         publisher_ = this->create_publisher<px4_msgs::msg::RaspberryPiToPixhawk>(
             "/fmu/in/raspberry_pi_to_pixhawk", 10);
+        
+        /*****Initialize parameters and options for grampc*******/        
+        const char* workspace_path = std::getenv("PWD");
+        filename1_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/x_traj_rotor1_failure_3.txt";
+        filename2_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/u_traj_rotor1_failure_3.txt";
+        filename1 = filename1_.c_str();
+        filename2 = filename2_.c_str();
+        
 
-        // Timer to publish message every 1 second
-        timer_ = this->create_wall_timer(
-            std::chrono::seconds(1),
-            std::bind(&MpcController::publish_message, this));
+        typeRNum x0[9] = {0,0,0,0,0,0,0,0,0} ;
+        lineReader(x0, 9, filename1, 1);
 
-        // create problem description
-        double Thor = 0.3;
-        double dt = 0.01;
-        UAVModel problem(Thor, dt);
-        // create solver
-        grampc::Grampc solver(&problem);
+        typeRNum u0[8] = {0,0,0,0,0,0,0,0};
+        lineReader(u0, 8, filename2, 1); 
 
-     
+        ctypeRNum umax[NU] = {100,100,100,100,100,0.4363,0.3491,0.5236};
+        ctypeRNum umin[NU] = {0,0,0,0,0,-0.4363,-0.3491,-0.5236};
+
+        ctypeRNum Thor = problem.Thor;	/* Prediction horizon */
+        ctypeRNum dt = problem.dt;  /* Sampling time */
+        typeRNum t = (typeRNum)0.0;   /* time at the current sampling step */
+
+        /********* Option definition *********/
+        /* Basic algorithmic options */
+        ctypeInt Nhor = (typeInt)6;        /* Number of steps for the system integration */
+        ctypeInt MaxGradIter = (typeInt)10;  /* Maximum number of gradient iterations */
+        ctypeInt MaxMultIter = (typeInt)1;  /* Maximum number of augmented Lagrangian iterations */
+        const char* ShiftControl = "on";
+
+        /* Cost integration */
+        const char* IntegralCost = "on";
+        const char* TerminalCost = "on";
+        const char* IntegratorCost = "trapezodial";
+
+        /* System integration */
+        const char* Integrator = "heun";
+        ctypeRNum IntegratorRelTol = (typeRNum)1e-6;
+        ctypeRNum IntegratorAbsTol = (typeRNum)1e-8;
+        ctypeRNum IntegratorMinStepSize = EPS;
+        ctypeInt  IntegratorMaxSteps = (typeInt)1e8;
+        ctypeInt FlagsRodas[8] = { 0, 0, 0, NX, NX, 0, NX, NX }; 
+
+        /* Line search */
+        const char* LineSearchType = "explicit2";
+        const char* LineSearchExpAutoFallback = "on";
+        ctypeRNum LineSearchMax = (typeRNum)100;
+        ctypeRNum LineSearchMin = (typeRNum)1e-10;
+        ctypeRNum LineSearchInit = (typeRNum)1e-4;
+        ctypeRNum LineSearchAdaptAbsTol = (typeRNum)1e-6;
+        ctypeRNum LineSearchAdaptFactor = (typeRNum)3.0 / 2.0;
+        ctypeRNum LineSearchIntervalTol = (typeRNum)1e-1;
+        ctypeRNum LineSearchIntervalFactor = (typeRNum)0.85;
+
+        /* Input and or parameter optimization	*/
+        const char* OptimControl = "on";
+        const char* OptimParam = "off";
+        ctypeRNum OptimParamLineSearchFactor = (typeRNum)1.0;
+        const char* OptimTime = "off";
+        ctypeRNum OptimTimeLineSearchFactor = (typeRNum)1.0;
+
+        /* Scaling Values for the states, inputs and parameters */
+        const char* ScaleProblem = "off";
+        ctypeRNum xScale[NX] = { 1 };
+        ctypeRNum xOffset[NX] = { 0 };
+        ctypeRNum uScale[NU] = { 1 };
+        ctypeRNum uOffset[NU] = { 0 };
+        /* ctypeRNum pScale[NP] = {  };
+        ctypeRNum pOffset[NP] = {  };  */
+        ctypeRNum TScale = (typeRNum)1.0;
+        ctypeRNum TOffset = (typeRNum)0.0;
+        ctypeRNum JScale = (typeRNum)1.0;
+        /* ctypeRNum cScale[NC] = { 1 };  */
+
+        /* Tye of constraints' consideration */
+        const char* EqualityConstraints = "off";
+        const char* InequalityConstraints = "off";
+        const char* TerminalEqualityConstraints = "off";
+        const char* TerminalInequalityConstraints = "off";
+        const char* ConstraintsHandling = "auglag";
+        /* ctypeRNum ConstraintsAbsTol[NC] = { 1e-4 }; */
+
+        /* Multipliers & penalties */
+        ctypeRNum MultiplierMax = (typeRNum) 1e6;
+        ctypeRNum MultiplierDampingFactor = 0.8; //1
+        ctypeRNum PenaltyMax = (typeRNum)1e6; 
+        ctypeRNum PenaltyMin = (typeRNum)1e0;
+        ctypeRNum PenaltyIncreaseFactor = (typeRNum)1.0005; //1.05
+        ctypeRNum PenaltyDecreaseFactor = (typeRNum)0.95;
+        ctypeRNum PenaltyIncreaseThreshold = (typeRNum)0.8; //1
+        ctypeRNum AugLagUpdateGradientRelTol = (typeRNum)1e-2; 
+
+        /* Convergences tests */
+        const char* ConvergenceCheck = "off";
+        ctypeRNum ConvergenceGradientRelTol = (typeRNum)1e-6; 
+
+         /********* set parameters *********/
+        solver.setparam_real_vector( "x0", x0);
+        solver.setparam_real_vector( "u0", u0);
+        solver.setparam_real_vector( "umax", umax);
+        solver.setparam_real_vector( "umin", umin);
+        solver.setparam_real( "Thor", Thor);
+        solver.setparam_real( "dt", dt);
+        solver.setparam_real( "t0", t);
+        /********* Option definition *********/
+        solver.setopt_int("Nhor", Nhor);
+        solver.setopt_int("MaxGradIter", MaxGradIter);
+        solver.setopt_int("MaxMultIter", MaxMultIter);
+        solver.setopt_string("ShiftControl", ShiftControl);
+
+        solver.setopt_string("IntegralCost", IntegralCost);
+        solver.setopt_string("TerminalCost", TerminalCost);
+        solver.setopt_string("IntegratorCost", IntegratorCost);
+
+        solver.setopt_string("Integrator", Integrator);
+        solver.setopt_real("IntegratorRelTol", IntegratorRelTol);
+        solver.setopt_real("IntegratorAbsTol", IntegratorAbsTol);
+        solver.setopt_real("IntegratorMinStepSize", IntegratorMinStepSize);
+        solver.setopt_int("IntegratorMaxSteps", IntegratorMaxSteps);
+        solver.setopt_int_vector("FlagsRodas", FlagsRodas); 
+
+        solver.setopt_string("LineSearchType", LineSearchType);
+        solver.setopt_string("LineSearchExpAutoFallback", LineSearchExpAutoFallback);
+        solver.setopt_real("LineSearchMax", LineSearchMax);
+        solver.setopt_real("LineSearchMin", LineSearchMin);
+        solver.setopt_real("LineSearchInit", LineSearchInit);
+        solver.setopt_real("LineSearchIntervalFactor", LineSearchIntervalFactor);
+        solver.setopt_real("LineSearchAdaptFactor", LineSearchAdaptFactor);
+        solver.setopt_real("LineSearchIntervalTol", LineSearchIntervalTol);
+
+        solver.setopt_string("OptimControl", OptimControl);
+        solver.setopt_string("OptimParam", OptimParam);
+        solver.setopt_real("OptimParamLineSearchFactor", OptimParamLineSearchFactor);
+        solver.setopt_string("OptimTime", OptimTime);
+        solver.setopt_real("OptimTimeLineSearchFactor", OptimTimeLineSearchFactor);
+
+        solver.setopt_string("ScaleProblem", ScaleProblem);
+        solver.setopt_real_vector("xScale", xScale);
+        solver.setopt_real_vector("xOffset", xOffset);
+        solver.setopt_real_vector("uScale", uScale);
+        solver.setopt_real_vector("uOffset", uOffset);
+        /* solver.setopt_real_vector("pScale", pScale);
+        solver.setopt_real_vector("pOffset", pOffset); */
+        solver.setopt_real("TScale", TScale);
+        solver.setopt_real("TOffset", TOffset);
+        solver.setopt_real("JScale", JScale);
+        /* solver.setopt_real_vector("cScale", cScale);  */
+
+        solver.setopt_string("EqualityConstraints", EqualityConstraints);
+        solver.setopt_string("InequalityConstraints", InequalityConstraints);
+        solver.setopt_string("TerminalEqualityConstraints", TerminalEqualityConstraints);
+        solver.setopt_string("TerminalInequalityConstraints", TerminalInequalityConstraints);
+        solver.setopt_string("ConstraintsHandling", ConstraintsHandling);
+    /* 	solver.setopt_real_vector("ConstraintsAbsTol", ConstraintsAbsTol);
+    */
+        solver.setopt_real("MultiplierMax", MultiplierMax);
+        solver.setopt_real("MultiplierDampingFactor", MultiplierDampingFactor);
+        solver.setopt_real("PenaltyMax", PenaltyMax);
+        solver.setopt_real("PenaltyMin", PenaltyMin);
+        solver.setopt_real("PenaltyIncreaseFactor", PenaltyIncreaseFactor);
+        solver.setopt_real("PenaltyDecreaseFactor", PenaltyDecreaseFactor);
+        solver.setopt_real("PenaltyIncreaseThreshold", PenaltyIncreaseThreshold);
+        solver.setopt_real("AugLagUpdateGradientRelTol", AugLagUpdateGradientRelTol);
+
+        solver.setopt_string("ConvergenceCheck", ConvergenceCheck);
+        solver.setopt_real("ConvergenceGradientRelTol", ConvergenceGradientRelTol); 
+
+        // print options and parameters
+        solver.printopt();
+        solver.printparam();           
+
+        // MPC loop 
+        iMPC = 0;
+        // test
+        problem.updateTrajData(filename1, filename2, iMPC);
+        RCLCPP_INFO(this->get_logger(), "test101");
     }
 
 private:
-    // Callback function for subscription
+    // Callback function for subscription - get state x and publish u 
     void topic_callback(const px4_msgs::msg::PixhawkToRaspberryPi::SharedPtr msg)
     {
-        RCLCPP_INFO(this->get_logger(), "Received message from Pixhawk");
-
-/*         for (size_t i = 0; i < 16; i++) {
-            RCLCPP_INFO(this->get_logger(), "Payload[%zu]: %f", i, msg->msg_payload[i]);
-        } */
-        
-        // Get the current time and convert it to microseconds (current time is in nanoseconds)
-        uint64_t current_time_us = this->now().nanoseconds() / 1000;
-
-        // Timestamp from the message (in microseconds)
-        uint64_t message_time_us = msg->timestamp;
-
-
-
-        // Calculate the time difference and convert to milliseconds
-        double time_difference_ms = static_cast<double>(current_time_us - message_time_us) / 1000.0;
-
-        // Print the time difference
-        RCLCPP_INFO(this->get_logger(), "Time difference: %.5f ms", time_difference_ms);
-
-        // x_0 = msg;
-
-        // Create a message to send to the Pixhawk
-/*         auto outgoing_msg = px4_msgs::msg::RaspberryPiToPixhawk();
-        
-        // Copy the incoming msg_payload to the outgoing message
-        for (size_t i = 0; i < 16; i++) {
-            outgoing_msg.msg_payload[i] = msg->msg_payload[i];
+        // get state date and transfer it to double
+        std::array<float, 9> state_float;
+        for (size_t i = 0; i < 9; ++i) {
+            state_float[i] = msg->msg_payload[i];  // 
         }
 
-        // Publish the message
-        publisher_->publish(outgoing_msg); */
+        std::vector<double> state_double(9);
+        for (size_t i = 0; i < 9; ++i) {
+            state_double[i] = static_cast<double>(state_float[i]);  // 
+        }
+        double* state_ptr = state_double.data();
+
+        //print the current state
+        std::ostringstream state_stream;
+        state_stream << "Current state: ";
+        for (size_t i = 0; i < 9; ++i) {
+            state_stream << state_double[i] << " ";  
+        }
+        RCLCPP_INFO(this->get_logger(), "%s", state_stream.str().c_str());  
+ 
+
+        // set the current state in solver
+        solver.setparam_real_vector("x0", state_ptr);
+        //update trajectory 
+        problem.updateTrajData(filename1, filename2, iMPC);
+        solver.run();
+        double* u_next = solver.getSolution()->unext;
+        publish_message(u_next);
+        
+
+        // print the control input
+        std::ostringstream u_next_stream;
+        u_next_stream << "Control input: ";
+        for (size_t i = 0; i < 8; ++i) {
+            u_next_stream << u_next[i] << " ";
+        }
+        RCLCPP_INFO(this->get_logger(), "%s", u_next_stream.str().c_str()); 
+
+        iMPC++;
+        RCLCPP_INFO(this->get_logger(), "Current iMPC value: %d", iMPC);
+        if (iMPC >= 340) {
+            RCLCPP_INFO(this->get_logger(), "iMPC reached 300. Shutting down the node.");
+            rclcpp::shutdown();  
+        }
+
+
     }
 
-
     // Function to publish the message
-    void publish_message()
+    void publish_message(double* u_next)
     {
         auto msg = px4_msgs::msg::RaspberryPiToPixhawk();
-
-        // Fill the message payload with some example data
-        for (size_t i = 0; i < 16; i++) {
-            msg.msg_payload[i] = static_cast<float>(i);
+        for (size_t i = 0; i < 8; ++i) {
+        msg.msg_payload[i] = static_cast<float>(u_next[i]);  
         }
-        // Get the current time in microseconds and set it in the timestamp field
-        msg.timestamp = this->now().nanoseconds() / 1000;  // Convert nanoseconds to microseconds
 
-        // Log and publish the message
-        RCLCPP_INFO(this->get_logger(), "Publishing RaspberryPiToPixhawk message every 1 second.");
-        RCLCPP_INFO(this->get_logger(), "Publishing message with timestamp: %lu.", msg.timestamp);
+        for (size_t i = 8; i < 16; ++i) {
+        msg.msg_payload[i] = 0.0f;  
+        }
         publisher_->publish(msg);
+
+        
     }
 
     rclcpp::Subscription<px4_msgs::msg::PixhawkToRaspberryPi>::SharedPtr subscription_;
     rclcpp::Publisher<px4_msgs::msg::RaspberryPiToPixhawk>::SharedPtr publisher_;
     rclcpp::TimerBase::SharedPtr timer_;
+    UAVModel problem;
+    grampc::Grampc solver;
+    std::string filename1_;
+    std::string filename2_;
+    const char* filename1; // x_taj.txt
+    const char* filename2; // u_traj.txt
+    int iMPC;
 };
 
 int main(int argc, char *argv[])

@@ -4,12 +4,13 @@
 #include "problem_description.hpp" 
 #include <iostream> 
 #include <vector>
+#include <array>
 
 class UAVModel : public grampc::ProblemDescription
 {
 public:
 
-     UAVModel(typeRNum Thor, typeRNum dt);
+    UAVModel(typeRNum Thor, typeRNum dt);
 
     virtual void ocp_dim(typeInt *Nx, typeInt *Nu, typeInt *Np, typeInt *Ng, typeInt *Nh, typeInt *NgT, typeInt *NhT) override;
 
@@ -29,6 +30,7 @@ public:
     int sign(double x);
 
     void updateTrajData(const char* filename1, const char* filename2, int iMPC) ;
+    std::array<double, 9> rk4(const std::array<double, 9>& state, const std::array<double, 8>& input);
 
 public:
     std::vector<double> userparam;  

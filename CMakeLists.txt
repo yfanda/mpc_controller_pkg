@@ -64,17 +64,23 @@ endif()
 
 add_executable(mpc_controller src/mpc_controller.cpp)
 add_executable(sim_pix src/sim_pix.cpp)
+add_executable(simulator src/simulator.cpp)
+
+
 
 # Link the executables with the static library
 target_link_libraries(mpc_controller grampc)
 target_link_libraries(sim_pix grampc)
+target_link_libraries(simulator grampc)
 
 ament_target_dependencies(mpc_controller rclcpp px4_msgs)
-ament_target_dependencies(sim_pix rclcpp px4_msgs) 
+ament_target_dependencies(sim_pix rclcpp px4_msgs)
+ament_target_dependencies(simulator rclcpp px4_msgs) 
 
 install(TARGETS
   mpc_controller
   sim_pix
+  simulator
   grampc
   DESTINATION lib/${PROJECT_NAME})
 
