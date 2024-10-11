@@ -223,6 +223,9 @@ private:
         }
         double* state_ptr = state_double.data();
 
+        //get the test signal
+        float test_signal = msg->msg_payload[15];
+
         //print the current state
         std::ostringstream state_stream;
         state_stream << "Current state: ";
@@ -238,7 +241,7 @@ private:
         problem.updateTrajData(filename1, filename2, iMPC);
         solver.run();
         double* u_next = solver.getSolution()->unext;
-        publish_message(u_next);
+        publish_message(u_next,test_signal);
         
 
         // print the control input
@@ -251,28 +254,27 @@ private:
 
         iMPC++;
         RCLCPP_INFO(this->get_logger(), "Current iMPC value: %d", iMPC);
-        if (iMPC >= 340) {
+        /* if (iMPC >= 340) {
             RCLCPP_INFO(this->get_logger(), "iMPC reached 300. Shutting down the node.");
             rclcpp::shutdown();  
-        }
+        } */
 
 
     }
 
     // Function to publish the message
-    void publish_message(double* u_next)
+    void publish_message(double* u_next, float test_signal)
     {
         auto msg = px4_msgs::msg::RaspberryPiToPixhawk();
         for (size_t i = 0; i < 8; ++i) {
         msg.msg_payload[i] = static_cast<float>(u_next[i]);  
         }
 
-        for (size_t i = 8; i < 16; ++i) {
+        for (size_t i = 8; i < 15; ++i) {
         msg.msg_payload[i] = 0.0f;  
         }
-        publisher_->publish(msg);
-
-        
+        msg.msg_payload[15] =  test_signal;
+        publisher_->publish(msg);        
     }
 
     rclcpp::Subscription<px4_msgs::msg::PixhawkToRaspberryPi>::SharedPtr subscription_;
