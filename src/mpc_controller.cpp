@@ -223,8 +223,14 @@ private:
         }
         double* state_ptr = state_double.data();
 
-        //get the test signal
-        float test_signal = msg->msg_payload[15];
+        //get the test signal and timestamp
+
+        std::array<float, 7> test_signal;
+        for (size_t i = 0; i < 7; ++i) {
+            test_signal[i] = msg->msg_payload[i+9];  // 
+        }
+
+        uint64_t timestamp = msg->timestamp;
 
         //print the current state
         std::ostringstream state_stream;
@@ -241,7 +247,7 @@ private:
         problem.updateTrajData(filename1, filename2, iMPC);
         solver.run();
         double* u_next = solver.getSolution()->unext;
-        publish_message(u_next,test_signal);
+        publish_message(u_next,test_signal, timestamp);
         
 
         // print the control input
@@ -263,17 +269,17 @@ private:
     }
 
     // Function to publish the message
-    void publish_message(double* u_next, float test_signal)
+    void publish_message(double* u_next, std::array<float,7> test_signal, uint64_t timestamp)
     {
         auto msg = px4_msgs::msg::RaspberryPiToPixhawk();
         for (size_t i = 0; i < 8; ++i) {
-        msg.msg_payload[i] = static_cast<float>(u_next[i]);  
+        msg.msg_payload[i] = static_cast<float>(u_next[i]);  // u_next = msg_payload [0],...,[7]
         }
 
-        for (size_t i = 8; i < 15; ++i) {
-        msg.msg_payload[i] = 0.0f;  
+        for (size_t i = 9; i < 16; ++i) {
+        msg.msg_payload[i] = test_signal[i-9];  // test_signal = msg_payload [9],...,[15]
         }
-        msg.msg_payload[15] =  test_signal;
+        msg.timestamp = timestamp; // timestamp 
         publisher_->publish(msg);        
     }
 
