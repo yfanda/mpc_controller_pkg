@@ -254,10 +254,10 @@ private:
 
         iMPC++;
         RCLCPP_INFO(this->get_logger(), "Current iMPC value: %d", iMPC);
-        /* if (iMPC >= 340) {
+        if (iMPC >= 3000) {
             RCLCPP_INFO(this->get_logger(), "iMPC reached 300. Shutting down the node.");
             rclcpp::shutdown();  
-        } */
+        }
 
 
     }
