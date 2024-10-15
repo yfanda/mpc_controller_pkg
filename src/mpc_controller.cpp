@@ -2,6 +2,7 @@
 #include "px4_msgs/msg/pixhawk_to_raspberry_pi.hpp"
 #include "px4_msgs/msg/raspberry_pi_to_pixhawk.hpp"
 #include <iostream>
+#include <chrono> 
 #include <vector> 
 #include <grampc.hpp>
 #include "UAV_model.hpp"
@@ -16,7 +17,7 @@ class MpcController : public rclcpp::Node
 {
 public:
     // Node Constructer with initializing list problem(Thor,  dt),solver(&problem)
-    MpcController() : Node("mpc_controller"), problem(0.3,  0.01),solver(&problem)
+    MpcController() : Node("mpc_controller"), problem(3,  0.1),solver(&problem)
     {
         // QoS setting to fit pixhawk
         rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
@@ -54,7 +55,7 @@ public:
 
         /********* Option definition *********/
         /* Basic algorithmic options */
-        ctypeInt Nhor = (typeInt)6;        /* Number of steps for the system integration */
+        ctypeInt Nhor = (typeInt)31;        /* Number of steps for the system integration */
         ctypeInt MaxGradIter = (typeInt)10;  /* Maximum number of gradient iterations */
         ctypeInt MaxMultIter = (typeInt)1;  /* Maximum number of augmented Lagrangian iterations */
         const char* ShiftControl = "on";
@@ -122,7 +123,7 @@ public:
         ctypeRNum AugLagUpdateGradientRelTol = (typeRNum)1e-2; 
 
         /* Convergences tests */
-        const char* ConvergenceCheck = "off";
+        const char* ConvergenceCheck = "on";
         ctypeRNum ConvergenceGradientRelTol = (typeRNum)1e-6; 
 
          /********* set parameters *********/
@@ -224,7 +225,6 @@ private:
         double* state_ptr = state_double.data();
 
         //get the test signal and timestamp
-
         std::array<float, 7> test_signal;
         for (size_t i = 0; i < 7; ++i) {
             test_signal[i] = msg->msg_payload[i+9];  // 
@@ -245,7 +245,15 @@ private:
         solver.setparam_real_vector("x0", state_ptr);
         //update trajectory 
         problem.updateTrajData(filename1, filename2, iMPC);
+
+         // Start measuring time
+        auto start_time = std::chrono::high_resolution_clock::now();   
         solver.run();
+        // Stop measuring time
+        auto end_time = std::chrono::high_resolution_clock::now();
+        // Calculate duration in milliseconds
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+
         double* u_next = solver.getSolution()->unext;
         publish_message(u_next,test_signal, timestamp);
         
@@ -256,14 +264,17 @@ private:
         for (size_t i = 0; i < 8; ++i) {
             u_next_stream << u_next[i] << " ";
         }
-        RCLCPP_INFO(this->get_logger(), "%s", u_next_stream.str().c_str()); 
+        RCLCPP_INFO(this->get_logger(), "%s", u_next_stream.str().c_str());
+
+        // Print the calulation time
+        RCLCPP_INFO(this->get_logger(), "MPC took %ld ms to execute.", duration); 
 
         iMPC++;
         RCLCPP_INFO(this->get_logger(), "Current iMPC value: %d", iMPC);
-        /* if (iMPC >= 500) {
-            RCLCPP_INFO(this->get_logger(), "iMPC reached 300. Shutting down the node.");
+        if (iMPC >= 350) {
+            RCLCPP_INFO(this->get_logger(), "iMPC reached 400. Shutting down the node.");
             rclcpp::shutdown();  
-        } */
+        }
 
 
     }

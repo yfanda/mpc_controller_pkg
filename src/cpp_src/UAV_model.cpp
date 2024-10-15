@@ -164,11 +164,11 @@ void UAVModel::lfct(typeRNum *out, ctypeRNum t, ctypeRNum *x, ctypeRNum *u, ctyp
     // integral cost
     int nx = 9;
     int nu = 8;
-    ctypeRNum* xdes_temp;
-    ctypeRNum* udes_temp;
+    typeRNum* xdes_temp;
+    typeRNum* udes_temp;
     int des_index;
 
-    ctypeRNum* param = (ctypeRNum*)this->userparam.data();
+    typeRNum* param = (typeRNum*)this->userparam.data();
 
     typeRNum dt = param[0];
     typeRNum Thor = param[1];
@@ -199,8 +199,8 @@ void UAVModel::dldx(typeRNum *out, ctypeRNum t, ctypeRNum *x, ctypeRNum *u, ctyp
 {
     // partial derivatives w.r.t. u
     int nx = 9;
-    ctypeRNum* xdes_temp;
-    ctypeRNum* param = (ctypeRNum*)this->userparam.data();
+    typeRNum* xdes_temp;
+    typeRNum* param = (typeRNum*)this->userparam.data();
 
     int des_index;
     typeRNum dt = param[0];
@@ -221,8 +221,8 @@ void UAVModel::dldu(typeRNum *out, ctypeRNum t, ctypeRNum *x, ctypeRNum *u, ctyp
     // partial derivatives w.r.t. u
     int nx = 9;
     int nu = 8;
-    ctypeRNum* udes_temp;
-    ctypeRNum* param = (ctypeRNum*)this->userparam.data(); ;
+    typeRNum* udes_temp;
+    typeRNum* param = (typeRNum*)this->userparam.data(); ;
 
     int des_index;
     typeRNum dt = param[0];
@@ -243,8 +243,8 @@ void UAVModel::Vfct(typeRNum *out, ctypeRNum T, ctypeRNum *x, ctypeRNum *p, ctyp
 {
     // terminal cost
     int nx = 9;
-    ctypeRNum* xdes_temp;
-    ctypeRNum* param = (ctypeRNum*)this->userparam.data(); ;
+    typeRNum* xdes_temp;
+    typeRNum* param = (typeRNum*)this->userparam.data(); ;
 
     int des_index;
     typeRNum dt = param[0];
@@ -266,8 +266,8 @@ void UAVModel::dVdx(typeRNum *out, ctypeRNum T, ctypeRNum *x, ctypeRNum *p, ctyp
 {
     // partial derivatives w.r.t. T
     int nx = 9;
-    ctypeRNum* xdes_temp;
-    ctypeRNum* param = (ctypeRNum*)this->userparam.data(); ;
+    typeRNum* xdes_temp;
+    typeRNum* param = (typeRNum*)this->userparam.data(); ;
 
     int des_index;
     typeRNum dt = param[0];
