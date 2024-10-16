@@ -65,6 +65,7 @@ endif()
 add_executable(mpc_controller src/mpc_controller.cpp)
 add_executable(sim_pix src/sim_pix.cpp)
 add_executable(simulator src/simulator.cpp)
+add_executable(subscriber_node src/subscriber_node.cpp)
 
 
 
@@ -75,12 +76,14 @@ target_link_libraries(simulator grampc)
 
 ament_target_dependencies(mpc_controller rclcpp px4_msgs)
 ament_target_dependencies(sim_pix rclcpp px4_msgs)
-ament_target_dependencies(simulator rclcpp px4_msgs) 
+ament_target_dependencies(simulator rclcpp px4_msgs)
+ament_target_dependencies(subscriber_node rclcpp px4_msgs) 
 
 install(TARGETS
   mpc_controller
   sim_pix
   simulator
+  subscriber_node
   grampc
   DESTINATION lib/${PROJECT_NAME})
 
