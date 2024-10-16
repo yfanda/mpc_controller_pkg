@@ -13,6 +13,9 @@ public:
   SubscriberNode()
   : Node("subscriber_node")
   {
+    // QoS setting to fit pixhawk
+    rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
+    auto qos = rclcpp::QoS(rclcpp::QoSInitialization(qos_profile.history, 5), qos_profile);
     // Subscription to the first topic: Pixhawk to Raspberry Pi
     subscription_out_ = this->create_subscription<px4_msgs::msg::PixhawkToRaspberryPi>(
       "/fmu/out/pixhawk_to_raspberry_pi", 10,
