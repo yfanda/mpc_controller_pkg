@@ -18,13 +18,13 @@ public:
     auto qos = rclcpp::QoS(rclcpp::QoSInitialization(qos_profile.history, 5), qos_profile);
     // Subscription to the first topic: Pixhawk to Raspberry Pi
     subscription_out_ = this->create_subscription<px4_msgs::msg::PixhawkToRaspberryPi>(
-      "/fmu/out/pixhawk_to_raspberry_pi", 10,
+      "/fmu/out/pixhawk_to_raspberry_pi", qos,
       std::bind(&SubscriberNode::topic_callback_out, this, std::placeholders::_1)
     );
 
     // Subscription to the second topic: Raspberry Pi to Pixhawk
     subscription_in_ = this->create_subscription<px4_msgs::msg::RaspberryPiToPixhawk>(
-      "/fmu/in/raspberry_pi_to_pixhawk", 10,
+      "/fmu/in/raspberry_pi_to_pixhawk", qos,
       std::bind(&SubscriberNode::topic_callback_in, this, std::placeholders::_1)
     );
 
