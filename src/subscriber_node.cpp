@@ -66,7 +66,7 @@ private:
   // Function to initialize log files
   void init_files() {
     // Create a directory for storing the log files
-    fs::path dir = "src/mpc_controller_pkg/ros2_message_logs";
+    fs::path dir = "ros2_message_logs";
     if (!fs::exists(dir)) {
       fs::create_directory(dir);
     }
