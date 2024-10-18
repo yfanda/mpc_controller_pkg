@@ -207,6 +207,15 @@ public:
         problem.updateTrajData(filename1, filename2, iMPC);
         RCLCPP_INFO(this->get_logger(), "test101");
     }
+     ~MpcController()
+    {
+        if (iMPC>0)
+        {
+            auto average_duration = total_duration_ /iMPC;
+            RCLCPP_INFO(this->get_logger(), "MPC average execution time: %ld ms", average_duration);             
+
+        }
+    }
 
 private:
     // Callback function for subscription - get state x and publish u 
@@ -268,6 +277,7 @@ private:
 
         // Print the calulation time
         RCLCPP_INFO(this->get_logger(), "MPC took %ld ms to execute.", duration); 
+        total_duration_ += duration;
 
         double T_sim = iMPC * problem.dt;
         RCLCPP_INFO(this->get_logger(), "Current iMPC value: %d", iMPC);
@@ -305,6 +315,7 @@ private:
     const char* filename1; // x_taj.txt
     const char* filename2; // u_traj.txt
     int iMPC;
+    int64_t total_duration_;
 };
 
 int main(int argc, char *argv[])
