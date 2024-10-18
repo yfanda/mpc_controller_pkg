@@ -16,7 +16,7 @@ public:
             "/fmu/in/raspberry_pi_to_pixhawk", 10,
             std::bind(&SimPix::topic_callback, this, std::placeholders::_1));
 
-/*         // Publish a message when the node starts
+        // Publish a message when the node starts
         auto msg = px4_msgs::msg::PixhawkToRaspberryPi();
         
         // Fill the message payload with some example data
@@ -26,7 +26,7 @@ public:
 
         // Log and publish the message
         RCLCPP_INFO(this->get_logger(), "Publishing initial PixhawkToRaspberryPi message.");
-        publisher_->publish(msg); */
+        publisher_->publish(msg);
 
         // Set a timer to continuously publish messages at a regular interval (optional)
         //timer_ = this->create_wall_timer(
@@ -42,9 +42,9 @@ private:
 
 
         // You can process the received message here if needed
-       /*  for (size_t i = 0; i < 16; i++) {
+        for (size_t i = 0; i < 16; i++) {
             RCLCPP_INFO(this->get_logger(), "Payload[%zu]: %f", i, msg->msg_payload[i]);
-        } */
+        }
 
         // Create a message to send to the Pixhawk
         auto outgoing_msg = px4_msgs::msg::PixhawkToRaspberryPi();

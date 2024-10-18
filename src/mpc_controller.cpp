@@ -23,10 +23,15 @@ public:
         rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
         auto qos = rclcpp::QoS(rclcpp::QoSInitialization(qos_profile.history, 5), qos_profile);
 
-        // Subscriber to Pixhawk to RaspberryPi message
+        /* // Subscriber to Pixhawk to RaspberryPi message
         subscription_ = this->create_subscription<px4_msgs::msg::PixhawkToRaspberryPi>(
             "/fmu/out/pixhawk_to_raspberry_pi", qos,
-            std::bind(&MpcController::topic_callback, this, std::placeholders::_1));
+            std::bind(&MpcController::topic_callback, this, std::placeholders::_1)); */
+
+        // Subscriber test to send back the msg it receives
+        subscription_ = this->create_subscription<px4_msgs::msg::PixhawkToRaspberryPi>(
+            "/fmu/out/pixhawk_to_raspberry_pi", qos,
+            std::bind(&MpcController::test_publish_message, this, std::placeholders::_1));
 
         // Publisher to RaspberryPi to Pixhawk message
         publisher_ = this->create_publisher<px4_msgs::msg::RaspberryPiToPixhawk>(
@@ -202,7 +207,7 @@ public:
         solver.printparam();           
 
         // MPC loop 
-        iMPC = 0;
+        iMPC = 1;
         // test
         problem.updateTrajData(filename1, filename2, iMPC);
         RCLCPP_INFO(this->get_logger(), "test101");
@@ -303,6 +308,21 @@ private:
         }
         msg.timestamp = timestamp; // timestamp 
         publisher_->publish(msg);        
+    }
+    // Function to publish the message
+    void test_publish_message(const px4_msgs::msg::PixhawkToRaspberryPi::SharedPtr msg)
+    {
+        RCLCPP_INFO(this->get_logger(), "starting communication test ...");
+        auto msg_out = px4_msgs::msg::RaspberryPiToPixhawk();
+        for (size_t i = 0; i < 16; ++i) {
+        msg_out.msg_payload[i] = static_cast<float>(msg->msg_payload[i]);  // u_next = msg_payload [0],...,[7]
+        }
+        publisher_->publish(msg_out);
+        if (iMPC >= 50) {
+            rclcpp::shutdown();  
+            RCLCPP_INFO(this->get_logger(), "communication test ended");
+        }
+        iMPC++;        
     }
 
     rclcpp::Subscription<px4_msgs::msg::PixhawkToRaspberryPi>::SharedPtr subscription_;
