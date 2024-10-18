@@ -17,7 +17,7 @@ class MpcController : public rclcpp::Node
 {
 public:
     // Node Constructer with initializing list problem(Thor,  dt),solver(&problem)
-    MpcController() : Node("mpc_controller"), problem(0.3, 0.01),solver(&problem)
+    MpcController() : Node("mpc_controller"), problem(1.5, 0.05),solver(&problem)
     {
         // QoS setting to fit pixhawk
         rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
@@ -55,7 +55,7 @@ public:
 
         /********* Option definition *********/
         /* Basic algorithmic options */
-        ctypeInt Nhor = (typeInt)11;        /* Number of steps for the system integration */
+        ctypeInt Nhor = (typeInt)31;        /* Number of steps for the system integration */
         ctypeInt MaxGradIter = (typeInt)100;  /* Maximum number of gradient iterations */
         ctypeInt MaxMultIter = (typeInt)1;  /* Maximum number of augmented Lagrangian iterations */
         const char* ShiftControl = "on";
@@ -269,12 +269,13 @@ private:
         // Print the calulation time
         RCLCPP_INFO(this->get_logger(), "MPC took %ld ms to execute.", duration); 
 
-        iMPC++;
+        double T_sim = iMPC * problem.dt;
         RCLCPP_INFO(this->get_logger(), "Current iMPC value: %d", iMPC);
-        if (iMPC >= 1000) {
-            RCLCPP_INFO(this->get_logger(), "iMPC reached 400. Shutting down the node.");
+        if (T_sim >= 45) {
+            RCLCPP_INFO(this->get_logger(), "simulation time limited. Shutting down the node.");
             rclcpp::shutdown();  
         }
+        iMPC++;
 
 
     }
