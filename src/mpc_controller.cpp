@@ -17,7 +17,7 @@ class MpcController : public rclcpp::Node
 {
 public:
     // Node Constructer with initializing list problem(Thor,  dt),solver(&problem)
-    MpcController() : Node("mpc_controller"), problem(1.5, 0.05),solver(&problem)
+    MpcController() : Node("mpc_controller"), problem(0.3, 0.01),solver(&problem)
     {
         // QoS setting to fit pixhawk
         rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
@@ -55,8 +55,8 @@ public:
 
         /********* Option definition *********/
         /* Basic algorithmic options */
-        ctypeInt Nhor = (typeInt)31;        /* Number of steps for the system integration */
-        ctypeInt MaxGradIter = (typeInt)100;  /* Maximum number of gradient iterations */
+        ctypeInt Nhor = (typeInt)6;        /* Number of steps for the system integration */
+        ctypeInt MaxGradIter = (typeInt)10;  /* Maximum number of gradient iterations */
         ctypeInt MaxMultIter = (typeInt)1;  /* Maximum number of augmented Lagrangian iterations */
         const char* ShiftControl = "on";
 

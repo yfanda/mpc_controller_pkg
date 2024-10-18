@@ -9,7 +9,7 @@
 class SimulatorNode : public rclcpp::Node
 {
 public:
-    SimulatorNode() : Node("simulator"), problem(1.5, 0.05)
+    SimulatorNode() : Node("simulator"), problem(0.3, 0.01)
     {
         // get initial state x_0
         state_ = {0.0};
