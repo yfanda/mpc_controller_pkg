@@ -318,10 +318,10 @@ private:
         msg_out.msg_payload[i] = static_cast<float>(msg->msg_payload[i]);  // u_next = msg_payload [0],...,[7]
         }
         publisher_->publish(msg_out);
-        if (iMPC >= 50) {
-            rclcpp::shutdown();  
-            RCLCPP_INFO(this->get_logger(), "communication test ended");
-        }
+       // if (iMPC >= 50) {
+       //     rclcpp::shutdown();  
+       //     RCLCPP_INFO(this->get_logger(), "communication test ended");
+       // }
         iMPC++;        
     }
 
