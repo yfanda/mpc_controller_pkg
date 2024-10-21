@@ -23,15 +23,15 @@ public:
         rmw_qos_profile_t qos_profile = rmw_qos_profile_sensor_data;
         auto qos = rclcpp::QoS(rclcpp::QoSInitialization(qos_profile.history, 5), qos_profile);
 
-        /* // Subscriber to Pixhawk to RaspberryPi message
+        // Subscriber to Pixhawk to RaspberryPi message
         subscription_ = this->create_subscription<px4_msgs::msg::PixhawkToRaspberryPi>(
             "/fmu/out/pixhawk_to_raspberry_pi", qos,
-            std::bind(&MpcController::topic_callback, this, std::placeholders::_1)); */
+            std::bind(&MpcController::topic_callback, this, std::placeholders::_1));
 
-        // Subscriber test to send back the msg it receives
+        /* // Subscriber test to send back the msg it receives
         subscription_ = this->create_subscription<px4_msgs::msg::PixhawkToRaspberryPi>(
             "/fmu/out/pixhawk_to_raspberry_pi", qos,
-            std::bind(&MpcController::test_publish_message, this, std::placeholders::_1));
+            std::bind(&MpcController::test_publish_message, this, std::placeholders::_1)); */
 
         // Publisher to RaspberryPi to Pixhawk message
         publisher_ = this->create_publisher<px4_msgs::msg::RaspberryPiToPixhawk>(
@@ -286,10 +286,10 @@ private:
 
         double T_sim = iMPC * problem.dt;
         RCLCPP_INFO(this->get_logger(), "Current iMPC value: %d", iMPC);
-        if (T_sim >= 45) {
+        /* if (T_sim >= 45) {
             RCLCPP_INFO(this->get_logger(), "simulation time limited. Shutting down the node.");
             rclcpp::shutdown();  
-        }
+        } */
         iMPC++;
 
 
