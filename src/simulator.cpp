@@ -21,17 +21,6 @@ public:
         filename2_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/u_traj.txt";
         filename2 = filename2_.c_str();
 
-        //
-        FILE* file;
-        file = fopen(filename2, "r");
-        if (file == NULL) {
-        fprintf(stderr, "Failed to open file: %s\n", filename2);
-        exit(1);
-        }
-        else{
-            fprintf(stderr, "successfully open file: %s\n", filename2);
-        }
-        //
         
         lineReader(state_ptr, 9, filename1, 1);
 
@@ -62,21 +51,10 @@ private:
     void topic_callback(const px4_msgs::msg::RaspberryPiToPixhawk::SharedPtr msg)
     {        
         // RCLCPP_INFO(this->get_logger(), "Received message from RaspberryPiToPixhawk");
-
-        
-
         std::array<float, 7> test_signal;
         for (size_t i = 0; i < 7; ++i) {
             test_signal[i] = msg->msg_payload[i+9];  // 
         }
-
-        /* FILE* file;
-        file = fopen(filename2, "r");
-        if (file == NULL) {
-        fprintf(stderr, "Failed to open file u_traj: %s\n", filename2);
-        exit(1);
-        } */
-        RCLCPP_INFO(this->get_logger(), "Filename: %s", filename2);
 
         int iMPC = test_signal[0];
         typeRNum u_des[8] = {0,0,0,0,0,0,0,0};
