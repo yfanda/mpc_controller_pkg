@@ -207,7 +207,7 @@ public:
         solver.printparam();           
 
         // MPC loop 
-        iMPC = 1;
+        iMPC = 0;
         // test
         problem.updateTrajData(filename1, filename2, iMPC);
         RCLCPP_INFO(this->get_logger(), "test101");
@@ -240,7 +240,8 @@ private:
 
         //get the test signal and timestamp
         std::array<float, 7> test_signal;
-        for (size_t i = 0; i < 7; ++i) {
+        test_signal[0]= iMPC;
+        for (size_t i = 1; i < 7; ++i) {
             test_signal[i] = msg->msg_payload[i+9];  // 
         }
 
@@ -269,8 +270,19 @@ private:
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
 
         double* u_next = solver.getSolution()->unext;
-        publish_message(u_next,test_signal, timestamp);
         
+
+        // calculate the delta_u = u_next -u_des
+
+        typeRNum u_des[8] = {0,0,0,0,0,0,0,0};
+        typeRNum delta_u[8] = {0,0,0,0,0,0,0,0};
+        int n = static_cast<int>(ceil(problem.dt / 0.01));
+        lineReader(u_des, 8, filename2, iMPC*n + 1); 
+        for (int i = 0;i<8;i++){
+            delta_u[i] = u_next[i] - u_des[i];
+        }
+
+        publish_message(delta_u,test_signal, timestamp);
 
         // print the control input
         std::ostringstream u_next_stream;

@@ -16,8 +16,22 @@ public:
         double* state_ptr = state_.data();
 
         const char* workspace_path = std::getenv("PWD");
-        std::string filename1_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/x_traj.txt";
+        filename1_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/x_traj.txt";
         filename1 = filename1_.c_str();
+        filename2_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/u_traj.txt";
+        filename2 = filename2_.c_str();
+
+        //
+        FILE* file;
+        file = fopen(filename2, "r");
+        if (file == NULL) {
+        fprintf(stderr, "Failed to open file: %s\n", filename2);
+        exit(1);
+        }
+        else{
+            fprintf(stderr, "successfully open file: %s\n", filename2);
+        }
+        //
         
         lineReader(state_ptr, 9, filename1, 1);
 
@@ -46,13 +60,32 @@ public:
 private:
     
     void topic_callback(const px4_msgs::msg::RaspberryPiToPixhawk::SharedPtr msg)
-    {
-        
+    {        
         // RCLCPP_INFO(this->get_logger(), "Received message from RaspberryPiToPixhawk");
+
+        
+
+        std::array<float, 7> test_signal;
+        for (size_t i = 0; i < 7; ++i) {
+            test_signal[i] = msg->msg_payload[i+9];  // 
+        }
+
+        /* FILE* file;
+        file = fopen(filename2, "r");
+        if (file == NULL) {
+        fprintf(stderr, "Failed to open file u_traj: %s\n", filename2);
+        exit(1);
+        } */
+        RCLCPP_INFO(this->get_logger(), "Filename: %s", filename2);
+
+        int iMPC = test_signal[0];
+        typeRNum u_des[8] = {0,0,0,0,0,0,0,0};
+        int n = static_cast<int>(ceil(problem.dt / 0.01));
+        lineReader(u_des, 8, filename2, iMPC*n + 1);
 
         std::array<double, 8> input;
         for (size_t i = 0; i < 8; ++i) {
-            input[i] = static_cast<double>(msg->msg_payload[i]);
+            input[i] = static_cast<double>(msg->msg_payload[i]) + u_des[i];
         }
 
         // print input
@@ -112,6 +145,8 @@ private:
     
     rclcpp::Subscription<px4_msgs::msg::RaspberryPiToPixhawk>::SharedPtr subscription_;
     rclcpp::Publisher<px4_msgs::msg::PixhawkToRaspberryPi>::SharedPtr publisher_;
+    std::string filename1_;
+    std::string filename2_;
     const char* filename1; // x_taj.txt
     const char* filename2; // u_traj.txt
     UAVModel problem;
