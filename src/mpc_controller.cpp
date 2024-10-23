@@ -274,15 +274,15 @@ private:
 
         // calculate the delta_u = u_next -u_des
 
-        typeRNum u_des[8] = {0,0,0,0,0,0,0,0};
+        /* typeRNum u_des[8] = {0,0,0,0,0,0,0,0};
         typeRNum delta_u[8] = {0,0,0,0,0,0,0,0};
         int n = static_cast<int>(ceil(problem.dt / 0.01));
         lineReader(u_des, 8, filename2, iMPC*n + 1); 
         for (int i = 0;i<8;i++){
             delta_u[i] = u_next[i] - u_des[i];
-        }
+        } */
 
-        publish_message(delta_u,test_signal, timestamp);
+        publish_message(u_next,test_signal, timestamp);
 
         // print the control input
         std::ostringstream u_next_stream;

@@ -56,14 +56,14 @@ private:
             test_signal[i] = msg->msg_payload[i+9];  // 
         }
 
-        int iMPC = test_signal[0];
+        /* int iMPC = test_signal[0];
         typeRNum u_des[8] = {0,0,0,0,0,0,0,0};
         int n = static_cast<int>(ceil(problem.dt / 0.01));
-        lineReader(u_des, 8, filename2, iMPC*n + 1);
+        lineReader(u_des, 8, filename2, iMPC*n + 1); */
 
         std::array<double, 8> input;
         for (size_t i = 0; i < 8; ++i) {
-            input[i] = static_cast<double>(msg->msg_payload[i]) + u_des[i];
+            input[i] = static_cast<double>(msg->msg_payload[i]);
         }
 
         // print input

@@ -1,0 +1,104 @@
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 1.3.7 (/opt/ros/humble/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3.10 (found version "3.10.12") found components: Interpreter 
+-- Found rclcpp: 16.0.8 (/opt/ros/humble/share/rclcpp/cmake)
+-- Found rosidl_generator_c: 3.1.5 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+-- Found rosidl_adapter: 3.1.5 (/opt/ros/humble/share/rosidl_adapter/cmake)
+-- Found rosidl_generator_cpp: 3.1.5 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found rmw_implementation_cmake: 6.1.1 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+-- Found rmw_fastrtps_cpp: 6.2.6 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+-- Found FastRTPS: /opt/ros/humble/include  
+-- Using RMW implementation 'rmw_fastrtps_cpp' as default
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Found px4_msgs: 2.0.1 (/home/evan/mpc_ws/install/px4_msgs/share/px4_msgs/cmake)
+-- Found ament_lint_auto: 0.12.10 (/opt/ros/humble/share/ament_lint_auto/cmake)
+-- Added test 'cppcheck' to perform static code analysis on C / C++ code
+-- Configured cppcheck include dirs: /home/evan/mpc_ws/src/mpc_controller_pkg/include/mpc_controller_pkg/cpp_include;/home/evan/mpc_ws/src/mpc_controller_pkg/include/mpc_controller_pkg/c_include
+-- Configured cppcheck exclude dirs and/or files: 
+-- Added test 'flake8' to check Python code syntax and style conventions
+-- Added test 'lint_cmake' to check CMake code style
+-- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+-- Added test 'uncrustify' to check C / C++ code style
+-- Configured uncrustify additional arguments: 
+-- Added test 'xmllint' to check XML markup files
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/evan/mpc_ws/src/mpc_controller_pkg/build/mpc_controller_pkg
+[ 21%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/rodas.c.o[0m
+[ 21%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/euler1.c.o[0m
+[ 21%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/eulermod2.c.o[0m
+[ 21%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/heun2.c.o[0m
+[ 21%] [32mBuilding CXX object CMakeFiles/subscriber_node.dir/src/subscriber_node.cpp.o[0m
+[ 25%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/trapezodial.c.o[0m
+[ 25%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/ruku45.c.o[0m
+[ 28%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/simpson.c.o[0m
+[ 32%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/grampc_alloc.c.o[0m
+[ 35%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/grampc_fixedsize.c.o[0m
+[ 39%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/grampc_init.c.o[0m
+[ 46%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/grampc_mess.c.o[0m
+[ 46%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/grampc_setopt.c.o[0m
+[ 57%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/grampc_util.c.o[0m
+[ 57%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/grampc_setparam.c.o[0m
+[ 57%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/grampc_run.c.o[0m
+[ 60%] [32mBuilding C object CMakeFiles/grampc.dir/src/c_src/tracking.c.o[0m
+[ 67%] [32mBuilding CXX object CMakeFiles/grampc.dir/src/cpp_src/grampc.cpp.o[0m
+[ 67%] [32mBuilding CXX object CMakeFiles/grampc.dir/src/cpp_src/problem_description.cpp.o[0m
+[ 71%] [32mBuilding CXX object CMakeFiles/grampc.dir/src/cpp_src/UAV_model.cpp.o[0m
+[ 75%] [32m[1mLinking CXX static library libgrampc.a[0m
+[ 75%] Built target grampc
+[ 85%] [32mBuilding CXX object CMakeFiles/sim_pix.dir/src/sim_pix.cpp.o[0m
+[ 85%] [32mBuilding CXX object CMakeFiles/simulator.dir/src/simulator.cpp.o[0m
+[ 85%] [32mBuilding CXX object CMakeFiles/mpc_controller.dir/src/mpc_controller.cpp.o[0m
+[ 89%] [32m[1mLinking CXX executable simulator[0m
+[ 92%] [32m[1mLinking CXX executable mpc_controller[0m
+[ 96%] [32m[1mLinking CXX executable sim_pix[0m
+[100%] [32m[1mLinking CXX executable subscriber_node[0m
+[100%] Built target simulator
+[100%] Built target sim_pix
+[100%] Built target mpc_controller
+[100%] Built target subscriber_node
+-- Install configuration: ""
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/lib/mpc_controller_pkg/mpc_controller
+-- Set runtime path of "/home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/lib/mpc_controller_pkg/mpc_controller" to ""
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/lib/mpc_controller_pkg/sim_pix
+-- Set runtime path of "/home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/lib/mpc_controller_pkg/sim_pix" to ""
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/lib/mpc_controller_pkg/simulator
+-- Set runtime path of "/home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/lib/mpc_controller_pkg/simulator" to ""
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/lib/mpc_controller_pkg/subscriber_node
+-- Set runtime path of "/home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/lib/mpc_controller_pkg/subscriber_node" to ""
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/lib/mpc_controller_pkg/libgrampc.a
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/launch
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/launch/mpc_controller_launch.py
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/ament_index/resource_index/package_run_dependencies/mpc_controller_pkg
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/ament_index/resource_index/parent_prefix_path/mpc_controller_pkg
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/environment/ament_prefix_path.sh
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/environment/ament_prefix_path.dsv
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/environment/path.sh
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/environment/path.dsv
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/local_setup.bash
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/local_setup.sh
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/local_setup.zsh
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/local_setup.dsv
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/package.dsv
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/ament_index/resource_index/packages/mpc_controller_pkg
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/cmake/mpc_controller_pkgConfig.cmake
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/cmake/mpc_controller_pkgConfig-version.cmake
+-- Installing: /home/evan/mpc_ws/src/mpc_controller_pkg/install/mpc_controller_pkg/share/mpc_controller_pkg/package.xml
