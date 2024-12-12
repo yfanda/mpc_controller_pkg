@@ -207,7 +207,7 @@ public:
         solver.printparam();           
 
         // MPC loop 
-        iMPC = 0;
+        iMPC = 1;
         // test
         problem.updateTrajData(filename1, filename2, iMPC);
         RCLCPP_INFO(this->get_logger(), "test101");
