@@ -2,6 +2,7 @@
 #include "px4_msgs/msg/pixhawk_to_raspberry_pi.hpp"
 #include "px4_msgs/msg/raspberry_pi_to_pixhawk.hpp"
 #include <iostream>
+#include <fstream>
 #include <chrono> 
 #include <vector> 
 #include <grampc.hpp>
@@ -36,6 +37,17 @@ public:
         // Publisher to RaspberryPi to Pixhawk message
         publisher_ = this->create_publisher<px4_msgs::msg::RaspberryPiToPixhawk>(
             "/fmu/in/raspberry_pi_to_pixhawk", 10);
+        
+        /************Files for saving state and control data and computation time************/
+        state_file_.open("state.txt", std::ios::out | std::ios::trunc);
+        control_file_.open("control.txt", std::ios::out | std::ios::trunc);
+        compute_time_file_.open("compute_time.txt", std::ios::out | std::ios::trunc);
+        if(!state_file_.is_open() || !control_file_.is_open() || !compute_time_file_.is_open()) {
+            RCLCPP_ERROR(this->get_logger(), "Failed to open output files.");
+        } else {
+            RCLCPP_INFO(this->get_logger(), "Output files opened successfully.");
+        }
+
         
         /*****Initialize parameters and options for grampc*******/        
         const char* workspace_path = std::getenv("PWD");
@@ -217,7 +229,7 @@ public:
         if (iMPC>0)
         {
             auto average_duration = total_duration_ /iMPC;
-            RCLCPP_INFO(this->get_logger(), "MPC average execution time: %ld ms", average_duration);             
+            RCLCPP_INFO(this->get_logger(), "MPC average execution time: %.2f ms", average_duration);             
 
         }
     }
@@ -267,20 +279,30 @@ private:
         // Stop measuring time
         auto end_time = std::chrono::high_resolution_clock::now();
         // Calculate duration in milliseconds
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        //auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+        std::chrono::duration<double, std::milli> fp_ms = end_time - start_time;
+        double duration = fp_ms.count();
 
         double* u_next = solver.getSolution()->unext;
-        
+        // wirte state control and coump_time into txt files
+        if (state_file_.is_open()) {
+            for (size_t i = 0; i < 9; ++i) {
+                state_file_ << state_double[i];
+                if (i < 8) state_file_ << "\t"; 
+            }
+            state_file_ << "\n";
+        }
+        if (control_file_.is_open()) {
+            for (size_t i = 0; i < 8; ++i) {
+                control_file_ << u_next[i];
+                if (i < 7) control_file_ << "\t";
+            }
+            control_file_ << "\n";
+        }
+        if (compute_time_file_.is_open()) {
+            compute_time_file_ << iMPC  << "\t" << duration<< "\n";
+        }
 
-        // calculate the delta_u = u_next -u_des
-
-        /* typeRNum u_des[8] = {0,0,0,0,0,0,0,0};
-        typeRNum delta_u[8] = {0,0,0,0,0,0,0,0};
-        int n = static_cast<int>(ceil(problem.dt / 0.01));
-        lineReader(u_des, 8, filename2, iMPC*n + 1); 
-        for (int i = 0;i<8;i++){
-            delta_u[i] = u_next[i] - u_des[i];
-        } */
 
         publish_message(u_next,test_signal, timestamp);
 
@@ -293,15 +315,15 @@ private:
         RCLCPP_INFO(this->get_logger(), "%s", u_next_stream.str().c_str());
 
         // Print the calulation time
-        RCLCPP_INFO(this->get_logger(), "MPC took %ld ms to execute.", duration); 
+        RCLCPP_INFO(this->get_logger(), "MPC took %.2f ms to execute.", duration); 
         total_duration_ += duration;
 
         double T_sim = iMPC * problem.dt;
         RCLCPP_INFO(this->get_logger(), "Current iMPC value: %d", iMPC);
-        /* if (T_sim >= 45) {
+        if (T_sim >= 45) {
             RCLCPP_INFO(this->get_logger(), "simulation time limited. Shutting down the node.");
             rclcpp::shutdown();  
-        } */
+        } 
         iMPC++;
 
 
@@ -346,8 +368,11 @@ private:
     std::string filename2_;
     const char* filename1; // x_taj.txt
     const char* filename2; // u_traj.txt
+    std::ofstream state_file_;
+    std::ofstream control_file_;
+    std::ofstream compute_time_file_;
     int iMPC;
-    int64_t total_duration_;
+    double total_duration_;
 };
 
 int main(int argc, char *argv[])
