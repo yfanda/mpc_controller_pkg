@@ -238,6 +238,7 @@ private:
     // Callback function for subscription - get state x and publish u 
     void topic_callback(const px4_msgs::msg::PixhawkToRaspberryPi::SharedPtr msg)
     {
+
         // get state date and transfer it to double
         std::array<float, 9> state_float;
         for (size_t i = 0; i < 9; ++i) {
@@ -260,22 +261,27 @@ private:
         uint64_t timestamp = msg->timestamp;
 
         //print the current state
+        /*
         std::ostringstream state_stream;
         state_stream << "Current state: ";
         for (size_t i = 0; i < 9; ++i) {
             state_stream << state_double[i] << " ";  
         }
         RCLCPP_INFO(this->get_logger(), "%s", state_stream.str().c_str());  
+        */
  
 
         // set the current state in solver
         solver.setparam_real_vector("x0", state_ptr);
+        
         //update trajectory 
         problem.updateTrajData(filename1, filename2, iMPC);
-
-         // Start measuring time
+       // Start measuring time
         auto start_time = std::chrono::high_resolution_clock::now();   
         solver.run();
+        
+        double* u_next = solver.getSolution()->unext;
+        publish_message(u_next,test_signal, timestamp);
         // Stop measuring time
         auto end_time = std::chrono::high_resolution_clock::now();
         // Calculate duration in milliseconds
@@ -283,7 +289,20 @@ private:
         std::chrono::duration<double, std::milli> fp_ms = end_time - start_time;
         double duration = fp_ms.count();
 
-        double* u_next = solver.getSolution()->unext;
+        // print the control input
+        std::ostringstream u_next_stream;
+        u_next_stream << "Control input: ";
+        for (size_t i = 0; i < 8; ++i) {
+            u_next_stream << u_next[i] << " ";
+        }
+        RCLCPP_INFO(this->get_logger(), "%s", u_next_stream.str().c_str());
+
+        // Print the calulation time
+        RCLCPP_INFO(this->get_logger(), "MPC took %.2f ms to execute.", duration); 
+        total_duration_ += duration;
+
+        double T_sim = iMPC * problem.dt;
+        RCLCPP_INFO(this->get_logger(), "Current iMPC value: %d", iMPC);
         // wirte state control and coump_time into txt files
         if (state_file_.is_open()) {
             for (size_t i = 0; i < 9; ++i) {
@@ -302,24 +321,6 @@ private:
         if (compute_time_file_.is_open()) {
             compute_time_file_ << iMPC  << "\t" << duration<< "\n";
         }
-
-
-        publish_message(u_next,test_signal, timestamp);
-
-        // print the control input
-        std::ostringstream u_next_stream;
-        u_next_stream << "Control input: ";
-        for (size_t i = 0; i < 8; ++i) {
-            u_next_stream << u_next[i] << " ";
-        }
-        RCLCPP_INFO(this->get_logger(), "%s", u_next_stream.str().c_str());
-
-        // Print the calulation time
-        RCLCPP_INFO(this->get_logger(), "MPC took %.2f ms to execute.", duration); 
-        total_duration_ += duration;
-
-        double T_sim = iMPC * problem.dt;
-        RCLCPP_INFO(this->get_logger(), "Current iMPC value: %d", iMPC);
         if (T_sim >= 45) {
             RCLCPP_INFO(this->get_logger(), "simulation time limited. Shutting down the node.");
             rclcpp::shutdown();  
