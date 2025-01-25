@@ -289,27 +289,73 @@ int UAVModel::sign(double x)
     return (x > 0.0) - (x < 0.0);
 }
 
-void UAVModel::updateTrajData(const char* filename1, const char* filename2, int iMPC) 
+void UAVModel::updateTrajData(int iMPC) 
 {
     int num_xtraj = static_cast<int>((Thor / dt + 1) * 9);
     int num_utraj = static_cast<int>((Thor / dt + 1) * 8);
     int n = static_cast<int>(ceil(dt / 0.01));
-    
-    
+    int horizon = Thor / dt + 1;
+
     std::vector<typeRNum> x_traj(num_xtraj);
     std::vector<typeRNum> u_traj(num_utraj);
 
-    
-    desReader(x_traj.data(), 9, filename1, iMPC * n + 1, Thor, dt);
-    desReader(u_traj.data(), 8, filename2, iMPC * n + 1, Thor, dt);
+    // 
+    readFromCache(x_traj.data(), x_traj_cache, iMPC * n + 1, horizon, 9);
+    readFromCache(u_traj.data(), u_traj_cache, iMPC * n + 1, horizon, 8);
 
-    
     for (int i = 2; i < 2 + num_xtraj; ++i) {
         userparam[i] = x_traj[i - 2];
     }
 
     for (int j = 2 + num_xtraj; j < 2 + num_xtraj + num_utraj; ++j) {
         userparam[j] = u_traj[j - 2 - num_xtraj];
+    }
+}
+void UAVModel::loadFileToCache(const std::string& filename, int num_cols, std::vector<std::vector<double>>& cache) {
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            throw std::runtime_error("Failed to open file: " + filename);
+        }
+
+        std::string line;
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            std::vector<double> row(num_cols);
+            for (int i = 0; i < num_cols; ++i) {
+                iss >> row[i];
+            }
+            cache.push_back(row);
+        }
+
+        file.close();
+}
+
+void UAVModel::initializeCache(const std::string& x_traj_file, const std::string& u_traj_file) {
+        loadFileToCache(x_traj_file, 9, x_traj_cache);
+        loadFileToCache(u_traj_file, 8, u_traj_cache);
+}
+
+void UAVModel::readFromCache(double* dest, const std::vector<std::vector<double>>& cache, int line_number, int num_rows, int num_cols) {
+        for (int i = 0; i < num_rows; ++i) {
+            int target_line = line_number + i;
+            if (target_line < cache.size()) {
+                std::copy(cache[target_line].begin(), cache[target_line].begin() + num_cols, dest + i * num_cols);
+            } else {
+                throw std::out_of_range("Requested line exceeds cache size.");
+            }
+        }
+}
+void UAVModel::getInitialValues(typeRNum* x0, int x_size, typeRNum* u0, int u_size) {
+    if (!x_traj_cache.empty()) {
+        for (int i = 0; i < x_size; ++i) {
+            x0[i] = static_cast<typeRNum>(x_traj_cache[0][i]); // 提取第一行 x
+        }
+    }
+
+    if (!u_traj_cache.empty()) {
+        for (int i = 0; i < u_size; ++i) {
+            u0[i] = static_cast<typeRNum>(u_traj_cache[0][i]); // 提取第一行 u
+        }
     }
 }
 std::array<double, 9> UAVModel::rk4(const std::array<double, 9>& state, const std::array<double, 8>& input)

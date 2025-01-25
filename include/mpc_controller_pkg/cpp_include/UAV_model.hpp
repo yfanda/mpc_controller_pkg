@@ -5,12 +5,16 @@
 #include <iostream> 
 #include <vector>
 #include <array>
+#include <string>
+#include <fstream>
+#include <sstream>
 
 class UAVModel : public grampc::ProblemDescription
 {
 public:
 
     UAVModel(typeRNum Thor, typeRNum dt);
+    ~UAVModel() = default;
 
     virtual void ocp_dim(typeInt *Nx, typeInt *Nu, typeInt *Np, typeInt *Ng, typeInt *Nh, typeInt *NgT, typeInt *NhT) override;
 
@@ -29,8 +33,15 @@ public:
 
     int sign(double x);
 
-    void updateTrajData(const char* filename1, const char* filename2, int iMPC) ;
+    std::vector<std::vector<double>> x_traj_cache;
+    std::vector<std::vector<double>> u_traj_cache;
+
+    void updateTrajData(int iMPC) ;
+    void loadFileToCache(const std::string& filename, int num_cols, std::vector<std::vector<double>>& cache);
+    void initializeCache(const std::string& x_traj_file, const std::string& u_traj_file);
+    void readFromCache(double* dest, const std::vector<std::vector<double>>& cache, int line_number, int num_rows, int num_cols);
     std::array<double, 9> rk4(const std::array<double, 9>& state, const std::array<double, 8>& input);
+    void getInitialValues(typeRNum* x0, int x_size, typeRNum* u0, int u_size);
 
 public:
     std::vector<double> userparam;  

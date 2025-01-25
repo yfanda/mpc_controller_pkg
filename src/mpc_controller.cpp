@@ -50,18 +50,23 @@ public:
 
         
         /*****Initialize parameters and options for grampc*******/        
-        const char* workspace_path = std::getenv("PWD");
+        /*const char* workspace_path = std::getenv("PWD");
         filename1_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/x_traj.txt";
         filename2_ = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/u_traj.txt";
         filename1 = filename1_.c_str();
-        filename2 = filename2_.c_str();
+        filename2 = filename2_.c_str();*/
         
+        const char* workspace_path = std::getenv("PWD");
+        std::string filename1 = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/x_traj.txt";
+        std::string filename2 = std::string(workspace_path) + "/src/mpc_controller_pkg/Traj/u_traj.txt";
+        problem.initializeCache(filename1, filename2);
+        printMemoryUsage(problem.x_traj_cache, problem.u_traj_cache);
 
-        typeRNum x0[9] = {0,0,0,0,0,0,0,0,0} ;
-        lineReader(x0, 9, filename1, 1);
 
-        typeRNum u0[8] = {0,0,0,0,0,0,0,0};
-        lineReader(u0, 8, filename2, 1); 
+        typeRNum x0[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+        typeRNum u0[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+        problem.getInitialValues(x0, 9, u0, 8);
+
 
         ctypeRNum umax[NU] = {100,100,100,100,100,0.4363,0.3491,0.5236};
         ctypeRNum umin[NU] = {0,0,0,0,0,-0.4363,-0.3491,-0.5236};
@@ -221,7 +226,7 @@ public:
         // MPC loop 
         iMPC = 1;
         // test
-        problem.updateTrajData(filename1, filename2, iMPC);
+        problem.updateTrajData(iMPC);
         RCLCPP_INFO(this->get_logger(), "test101");
     }
      ~MpcController()
@@ -273,11 +278,11 @@ private:
 
         // set the current state in solver
         solver.setparam_real_vector("x0", state_ptr);
-        
+         auto start_time = std::chrono::high_resolution_clock::now();  
         //update trajectory 
-        problem.updateTrajData(filename1, filename2, iMPC);
+        problem.updateTrajData(iMPC);
        // Start measuring time
-        auto start_time = std::chrono::high_resolution_clock::now();   
+        
         solver.run();
         
         double* u_next = solver.getSolution()->unext;
@@ -358,6 +363,22 @@ private:
        //     RCLCPP_INFO(this->get_logger(), "communication test ended");
        // }
         iMPC++;        
+    }
+    void printMemoryUsage(const std::vector<std::vector<double>>& x_traj_cache,
+                      const std::vector<std::vector<double>>& u_traj_cache) {
+        size_t x_traj_memory = 0;
+        for (const auto& row : x_traj_cache) {
+            x_traj_memory += row.capacity() * sizeof(double);  // Capacity of each row
+            }
+
+        size_t u_traj_memory = 0;
+        for (const auto& row : u_traj_cache) {
+            u_traj_memory += row.capacity() * sizeof(double);
+             }
+
+        std::cout << "Memory usage for x_traj_cache: " << x_traj_memory / 1024.0 / 1024.0 << " MB\n";
+        std::cout << "Memory usage for u_traj_cache: " << u_traj_memory / 1024.0 / 1024.0 << " MB\n";
+        std::cout << "Total memory usage: " << (x_traj_memory + u_traj_memory) / 1024.0 / 1024.0 << " MB\n";
     }
 
     rclcpp::Subscription<px4_msgs::msg::PixhawkToRaspberryPi>::SharedPtr subscription_;
